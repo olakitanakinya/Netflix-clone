@@ -42,7 +42,7 @@ jobs:
           
   deploy:
     needs: build-analyze-scan
-    runs-on: [aws-netflix]
+    runs-on: [self-hosted]
     steps:
       - name: Pull the docker image
         run: docker pull olakitanakinya/netflix:latest
