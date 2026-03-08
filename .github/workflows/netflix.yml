@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-
 jobs:
   build-analyze-scan:
     name: Build
@@ -13,7 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
+
       - uses: sonarsource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -21,14 +21,14 @@ jobs:
 
       - name: install trivy
         run: |
-           #install trivy
-           sudo apt-get install wget apt-transport-https gnupg lsb-release -y
-           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-           echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-           sudo apt-get update
-           sudo apt-get install trivy -y
-           #Command to scan files
-           trivy fs .
+          #install trivy
+          sudo apt-get install wget apt-transport-https gnupg lsb-release -y
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy -y
+          #Command to scan files
+          trivy fs .
 
       - name: Docker build and push
         run: |
@@ -39,14 +39,18 @@ jobs:
           docker push olakitanakinya/netflix:latest
         env:
           DOCKER_CLI_ACI: 1
-          
+
   deploy:
     needs: build-analyze-scan
     runs-on: [aws-netflix]
     steps:
       - name: Pull the docker image
         run: docker pull olakitanakinya/netflix:latest
+
       - name: Trivy image scan
         run: trivy image olakitanakinya/netflix:latest
+
       - name: Run the container netflix
-        run: docker run -d --name netflix -p 8081:80 olakitanakinya/netflix:latest
+        run: |
+          docker rm -f netflix || true
+          docker run -d --name netflix -p 8081:80 olakitanakinya/netflix:latest
