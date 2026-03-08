@@ -35,7 +35,7 @@ jobs:
         run: |
           docker build --build-arg TMDB_V3_API_KEY=${{ secrets.TMDB_API_KEY }} -t netflix .
           docker tag netflix olakitanakinya/netflix:latest
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --with-password-stdin
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
           docker push olakitanakinya/netflix:latest
 
   deploy:
